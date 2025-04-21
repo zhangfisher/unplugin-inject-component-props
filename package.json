@@ -85,7 +85,9 @@
     "prepublishOnly": "npm run build",
     "release": "bumpp && pnpm publish",
     "start": "tsx src/index.ts",
-    "test": "vitest"
+    "test": "vitest run",
+    "test:watch": "vitest watch",
+    "test:coverage": "vitest run --coverage"
   },
   "peerDependencies": {
     "@farmfe/core": ">=1",
@@ -123,8 +125,9 @@
     "@ast-grep/napi": "^0.37.0",
     "@babel/traverse": "^7.27.0",
     "ast-grep": "^0.1.0",
-    "flex-tools": "^1.4.41",
+    "flex-tools": "^1.4.43",
     "glob": "^11.0.1",
+    "magic-string": "^0.30.17",
     "minimatch": "^10.0.1",
     "unplugin": "^2.1.2"
   },

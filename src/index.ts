@@ -1,14 +1,14 @@
 import { createUnplugin } from 'unplugin'
 import type { UnpluginFactory } from 'unplugin'
 import type { Options } from './types'
- 
-import { minimatch } from 'minimatch'; 
+import { minimatch } from 'minimatch'
+import MagicString from 'magic-string'
 
 /**
  * 检查文件是否匹配pattern
  */
 function isFileMatched(id: string, pattern?: string | RegExp | (string | RegExp)[]): boolean {
-  if (!pattern) return true;  
+  if (!pattern) return true;
   const patterns = Array.isArray(pattern) ? pattern : [pattern];
   return patterns.some(p => {
     if (typeof p === 'string') {
@@ -17,23 +17,153 @@ function isFileMatched(id: string, pattern?: string | RegExp | (string | RegExp)
     return p.test(id);
   });
 }
-   
+
+
+/**
+ * 匹配组件导入语句
+ * @param code 源代码
+ * @param source 组件来源
+ * @returns 匹配到的组件名称数组
+ */
+function findComponentImports(code: string, source: string | RegExp): string[] {
+  let importRegex;
+  if (source instanceof RegExp) {
+    // 处理正则表达式source
+    const sourcePattern = source.source
+      .replace(/^\^/, '')
+      .replace(/\$/, '')
+      .replace(/\\\./g, '.');
+    importRegex = new RegExp(
+      `import\\s+(?:{\\s*([^}]+)\\s*}|([\\w]+))\\s+from\\s+['"][^'"]*${sourcePattern}[^'"]*['"]`,
+      'g'
+    );
+  } else {
+    // 处理字符串source
+    importRegex = new RegExp(
+      `import\\s+(?:{\\s*([^}]+)\\s*}|([\\w]+))\\s+from\\s+['"]${source.replace(/\./g, '\\.')}['"]`,
+      'g'
+    );
+  }
+
+  const components: string[] = [];
+  let match;
+  while ((match = importRegex.exec(code)) !== null) {
+    if (match[1]) { // 解构导入
+      const names = match[1].split(',')
+        .map(name => name.trim().split(/\s+as\s+/)[0]) // 处理别名
+        .filter(name => name); // 过滤空值
+      components.push(...names);
+    } else if (match[2]) { // 默认导入
+      components.push(match[2]);
+    }
+  }
+  return components;
+}
+
+/**
+ * 检查组件名称是否匹配规则
+ */
+function isComponentMatched(componentName: string, pattern: string | RegExp): boolean {
+  if (pattern === '*') return true;
+  if (pattern instanceof RegExp) return pattern.test(componentName);
+  return componentName === pattern;
+}
+
 
 export const unpluginFactory: UnpluginFactory<Options> = options => {
+  // 合并默认选项和用户选项
   const opts = Object.assign({
-      pattern: "**/*.{vue,jsx,tsx,.svelte,.mdx}",
-      rules:[]
+    pattern: "**/*.{vue,jsx,tsx,.svelte,.mdx}",
+    rules: []
   }, options) as Required<Options>
-  const hasRules = opts.rules && Object.keys(opts.rules).length > 0;
+
+  // 检查是否有注入规则
+  const hasRules = opts.rules.length > 0;
+
   return {
-    name: 'unplugin-inject-component-props',
+    name: 'unplugin-inject-props',
     transformInclude(id) {
-      return hasRules && isFileMatched(id, opts.pattern) 
+      return hasRules && isFileMatched(id, opts.pattern)
     },
     transform(code, id) {
-            
-      
-    },
+      try {
+        // 创建magic-string实例用于代码修改
+        const s = new MagicString(code);
+        let hasChanges = false;
+
+        // 遍历每个注入规则
+        for (const rule of opts.rules) {
+          // 获取从该source导入的组件
+          const importedComponents = findComponentImports(code, rule.source);
+
+          // 遍历每个导入的组件
+          for (const componentName of importedComponents) {
+            // 检查组件是否需要处理
+            if (!rule.components.some(pattern => isComponentMatched(componentName, pattern))) {
+              continue;
+            }
+
+            // 改进的组件标签匹配正则表达式
+            const componentRegex = new RegExp(
+              `(<${componentName})(\\s*[^>]*?)?(\\s*/?\\s*>)`,
+              'g'
+            );
+
+            let componentMatch;
+            while ((componentMatch = componentRegex.exec(code)) !== null) {
+              const [fullMatch, tagStart, existingProps = '', tagEnd] = componentMatch;
+              const isSelfClosing = tagEnd.includes('/');
+
+              // 计算props插入位置：在现有props之后，结束标记之前
+              const insertPosition = componentMatch.index + tagStart.length + (existingProps ? existingProps.length : 0);
+
+              // 构建要注入的props
+              const propsToInject = Object.entries(rule.props)
+                .filter(([propName]) => {
+                  // 更精确的prop存在性检查
+                  const propPattern = new RegExp(
+                    `(?:^|\\s)${propName}\\s*=\\s*(?:["'{])`,
+                    'm'
+                  );
+                  return !propPattern.test(existingProps);
+                })
+                .map(([propName, propValue]) => {
+                  // 处理不同类型的prop值
+                  if (/^["'].*["']$/.test(propValue)) {
+                    // 字符串值，保持原样
+                    return `${propName}=${propValue}`;
+                  } else if (/^{.*}$/.test(propValue)) {
+                    // 已经包含花括号的表达式，直接使用
+                    return `${propName}=${propValue}`;
+                  } else {
+                    // 普通表达式，添加花括号
+                    return `${propName}={${propValue}}`;
+                  }
+                })
+                .join(' ');
+
+              if (propsToInject) {
+                // 确保组件名和props之间有空格
+                const separator = existingProps.trim() ? ' ' : ' ';
+                s.appendLeft(insertPosition, `${separator}${propsToInject}`);
+                hasChanges = true;
+              }
+            }
+          }
+        }
+
+        // 只有在有修改时才返回新代码
+        return hasChanges ? {
+          code: s.toString(),
+          map: s.generateMap()
+        } : null;
+
+      } catch (error) {
+        // 记录错误但不中断构建过程
+        console.error(`[unplugin-inject-component-props] Error processing ${id}:`, error);
+        return code
+      }
+    }
   }
 }
 export const unplugin = /* #__PURE__ */ createUnplugin(unpluginFactory)

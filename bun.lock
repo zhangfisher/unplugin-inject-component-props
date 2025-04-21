@@ -7,8 +7,9 @@
         "@ast-grep/napi": "^0.37.0",
         "@babel/traverse": "^7.27.0",
         "ast-grep": "^0.1.0",
-        "flex-tools": "^1.4.41",
+        "flex-tools": "^1.4.43",
         "glob": "^11.0.1",
+        "magic-string": "^0.30.17",
         "minimatch": "^10.0.1",
         "unplugin": "^2.1.2",
       },
@@ -678,7 +679,7 @@
 
     "flatted": ["flatted@3.3.3", "https://registry.npmmirror.com/flatted/-/flatted-3.3.3.tgz", {}, "sha512-GX+ysw4PBCz0PzosHDepZGANEuFCMLrnRTiEy9McGjmkCQYwRq4A/X786G/fjM/+OjsWSU1ZrY5qyARZmO/uwg=="],
 
-    "flex-tools": ["flex-tools@1.4.41", "https://registry.npmmirror.com/flex-tools/-/flex-tools-1.4.41.tgz", { "dependencies": { "art-template": "4.13.2", "glob": "^10.3.3", "semver": "^7.6.3" } }, "sha512-AkKvrOm+iOxopvxe5EPD1XQ6MHNMtYQv2dldmeSjudov2ajRDByWd9SWD02txzoR2b1f84BoFUFRLiCHYerSxQ=="],
+    "flex-tools": ["flex-tools@1.4.43", "https://registry.npmmirror.com/flex-tools/-/flex-tools-1.4.43.tgz", { "dependencies": { "art-template": "4.13.2", "glob": "^10.3.3", "semver": "^7.6.3" } }, "sha512-gMI5uqUwjEea5c5jMAVELzGuDm01tMoIAL/hWku9TrbkHMCgQo7XhnD73hsSbRSaGITJD8sQUT9BD+zwBOv6bw=="],
 
     "foreground-child": ["foreground-child@3.3.1", "https://registry.npmmirror.com/foreground-child/-/foreground-child-3.3.1.tgz", { "dependencies": { "cross-spawn": "^7.0.6", "signal-exit": "^4.0.1" } }, "sha512-gIXjKqtFuWEgzFRJA9WCQeSJLZDjgJUOMCMzxtvFq/37KojM1BFGufqsCy0r4qSQmYLsZYMeyRqzIWOMup03sw=="],
 

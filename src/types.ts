@@ -1,11 +1,10 @@
-import type { Node } from '@babel/types';
-
 /**
  * 组件注入规则
  * key: prop名称
  * value: prop值（字符串或布尔值）
  */
-export type ComponentRule = {
+export type Rule = {
+  source: string | RegExp
   components:(string | RegExp)[]
   props: Record<string, string>
 };
@@ -20,23 +19,8 @@ export interface Options {
    */
    pattern?: string | RegExp | (string | RegExp)[];
    /**
-    * 组件注入规则
-    * key: 包名或导入路径或正则表达式
-    * value: 组件注入规则
+    * 组件注入规则数组
     */
-   rules: Record<string, ComponentRule>;
+   rules: Rule[];
 }
-
-export type BabelNode = Node;
-
-export interface ImportInfo {
-  source: string;
-  components: Map<string, string>;
-}
-
-export interface ComponentUsage {
-  name: string;
-  start: number;
-  end: number;
-  existingProps: Set<string>;
-}
+ 

@@ -1,179 +1,280 @@
-# vite-inject-props
+# unplugin-inject-component-props
 
-一个用于在构建时自动为组件注入props的Vite插件。支持React、Vue、Svelte等前端框架的组件。
+[![NPM version](https://img.shields.io/npm/v/unplugin-inject-component-props?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-inject-component-props)
+
+自动为组件注入props的unplugin插件。
 
 ## 特性
 
-- 🎯 自动为指定组件注入props
-- 🔍 支持glob模式和正则表达式匹配文件
-- ⚡️ 基于unplugin，支持多种构建工具
-- 🛡️ 完整的TypeScript支持
+- 🎯 精确匹配 - 支持多种文件和组件匹配模式
+- � 智能注入 - 自动避免重复的props
+- 📍 Sourcemap支持 - 便于调试
+- 🛠 框架无关 - 支持Vue、React、Svelte等
 
 ## 安装
 
 ```bash
-# npm
-npm install vite-inject-props -D
-
-# yarn
-yarn add vite-inject-props -D
-
-# pnpm
-pnpm add vite-inject-props -D
+npm i unplugin-inject-component-props -D
 ```
 
-## 使用
+<details>
+<summary>Vite</summary><br>
 
 ```ts
 // vite.config.ts
-import { defineConfig } from 'vite';
-import InjectProps from 'vite-inject-props';
+import InjectProps from 'unplugin-inject-component-props/vite'
 
 export default defineConfig({
   plugins: [
-    InjectProps({
-      // 只对满足glob条件的文件进行处理
-      pattern: /\.(jsx|tsx)$/,
-      // 注入规则
-      rules: {
-        // 为所有从lucide-react导入的组件注入props
-        'lucide-react': {
-          components: ['*'],
-          props: {
-            strokeWidth: '{1}',
-            size: '{32}'
-          }
-        },
-        // 为特定组件注入props
-        '@/components': {
-          components: ['Button'],
-          props: {
-            theme: '"primary"',
-            size: '"medium"'
-          }
-        }
-      }
-    })
-  ]
-});
+    InjectProps({ /* options */ }),
+  ],
+})
 ```
 
-## 配置选项
+<br></details>
 
-### pattern
-
-- 类型: `string | RegExp | (string | RegExp)[]`
-- 默认值: `undefined`
-
-用于指定需要处理的文件。支持以下格式：
-- 字符串：glob模式
-- 正则表达式
-- 字符串或正则表达式数组
+<details>
+<summary>Rollup</summary><br>
 
 ```ts
-// 示例
-pattern: /\.(jsx|tsx)$/
-pattern: '**/*.tsx'
-pattern: [/\.tsx$/, '**/*.jsx']
-```
-
-### rules
-
-- 类型: `Record<string, ComponentRule>`
-- 必需: `true`
-
-组件注入规则配置。
-
-```ts
-interface ComponentRule {
-  // 需要处理的组件名称列表
-  components: string[]; // 使用 "*" 表示所有组件
-  // 需要注入的props
-  props: Record<string, string>;
-}
-```
-
-## 示例
-
-### 为图标组件注入默认属性
-
-```ts
-import InjectProps from 'vite-inject-props';
+// rollup.config.js
+import InjectProps from 'unplugin-inject-component-props/rollup'
 
 export default {
   plugins: [
-    InjectProps({
-      pattern: /\.(jsx|tsx)$/,
-      rules: {
-        'lucide-react': {
-          components: ['*'],
-          props: {
-            strokeWidth: '{1}',
-            size: '{32}'
-          }
-        }
-      }
-    })
+    InjectProps({ /* options */ }),
+  ],
+}
+```
+
+<br></details>
+
+<details>
+<summary>Webpack</summary><br>
+
+```ts
+// webpack.config.js
+module.exports = {
+  /* ... */
+  plugins: [
+    require('unplugin-inject-component-props/webpack')({ /* options */ })
   ]
 }
 ```
 
-### 为特定组件注入主题属性
+<br></details>
+
+<details>
+<summary>esbuild</summary><br>
 
 ```ts
-import InjectProps from 'vite-inject-props';
+// esbuild.config.js
+import { build } from 'esbuild'
+import InjectProps from 'unplugin-inject-component-props/esbuild'
 
-export default {
-  plugins: [
-    InjectProps({
-      pattern: /\.(jsx|tsx)$/,
-      rules: {
-        '@/components': {
-          components: ['Button', 'Input', 'Select'],
-          props: {
-            theme: '"dark"',
-            size: '"medium"'
-          }
-        }
+build({
+  plugins: [InjectProps({ /* options */ })],
+})
+```
+
+<br></details>
+
+## 配置
+
+```ts
+InjectProps({
+  // 匹配需要处理的文件
+  // 支持 glob 模式、正则表达式或它们的数组
+  pattern: '**/*.{vue,jsx,tsx}',
+
+  // 注入规则
+  rules: [
+    {
+      // 组件来源，支持字符串或正则表达式
+      source: '@/components',
+      
+      // 要处理的组件名称，支持字符串、正则表达式或它们的数组
+      components: ['Button', 'Input', /^Base[A-Z]/],
+      
+      // 要注入的props
+      props: {
+        theme: '"dark"',
+        size: '"medium"'
       }
-    })
+    },
+    {
+      source: /^@material-ui/,
+      components: '*', // '*' 表示匹配所有组件
+      props: {
+        variant: '"outlined"',
+        color: '"primary"'
+      }
+    }
   ]
+})
+```
+
+## 使用示例
+
+### 基础用法
+
+```tsx
+// 配置
+InjectProps({
+  pattern: '**/*.tsx',
+  rules: [
+    {
+      source: '@/components',
+      components: ['Button'],
+      props: {
+        size: '"medium"',
+        theme: '"dark"'
+      }
+    }
+  ]
+})
+
+// 源代码
+import { Button } from '@/components'
+
+function App() {
+  return <Button>Click me</Button>
+}
+
+// 转换后
+import { Button } from '@/components'
+
+function App() {
+  return <Button size="medium" theme="dark">Click me</Button>
 }
 ```
 
 ### 使用正则表达式匹配组件
 
-```ts
-import InjectProps from 'vite-inject-props';
-
-export default {
-  plugins: [
-    InjectProps({
-      pattern: /\.(jsx|tsx)$/,
-      rules: {
-        // 匹配所有以Icon结尾的组件
-        '^@/icons/.*$': {
-          components: ['*'],
-          props: {
-            size: '{24}',
-            color: '"currentColor"'
-          }
-        }
+```tsx
+// 配置
+InjectProps({
+  pattern: '**/*.tsx',
+  rules: [
+    {
+      source: '@/components',
+      components: [/^Base[A-Z]/], // 匹配所有Base开头的组件
+      props: {
+        variant: '"standard"'
       }
-    })
+    }
   ]
+})
+
+// 源代码
+import { BaseButton, BaseInput } from '@/components'
+
+function App() {
+  return (
+    <>
+      <BaseButton>Click me</BaseButton>
+      <BaseInput placeholder="Type here" />
+    </>
+  )
+}
+
+// 转换后
+import { BaseButton, BaseInput } from '@/components'
+
+function App() {
+  return (
+    <>
+      <BaseButton variant="standard">Click me</BaseButton>
+      <BaseInput variant="standard" placeholder="Type here" />
+    </>
+  )
+}
+```
+
+### 动态Props值
+
+```tsx
+// 配置
+InjectProps({
+  pattern: '**/*.tsx',
+  rules: [
+    {
+      source: '@/components',
+      components: ['ThemeProvider'],
+      props: {
+        theme: 'defaultTheme', // 不带引号，将作为变量注入
+        debug: 'process.env.NODE_ENV === "development"' // 支持表达式
+      }
+    }
+  ]
+})
+
+// 源代码
+import { ThemeProvider } from '@/components'
+import { defaultTheme } from '@/themes'
+
+function App() {
+  return <ThemeProvider>...</ThemeProvider>
+}
+
+// 转换后
+import { ThemeProvider } from '@/components'
+import { defaultTheme } from '@/themes'
+
+function App() {
+  return <ThemeProvider theme={defaultTheme} debug={process.env.NODE_ENV === "development"}>...</ThemeProvider>
+}
+```
+
+## 类型定义
+
+```ts
+interface Options {
+  /**
+   * 匹配需要处理的文件
+   * @default '**/*.{vue,jsx,tsx,.svelte,.mdx}'
+   */
+  pattern?: string | RegExp | (string | RegExp)[]
+
+  /**
+   * 组件注入规则数组
+   */
+  rules: Rule[]
+}
+
+interface Rule {
+  /**
+   * 组件来源
+   * 可以是包名、路径或正则表达式
+   */
+  source: string | RegExp
+
+  /**
+   * 要处理的组件名称
+   * 可以是组件名、正则表达式或它们的数组
+   * 使用 '*' 匹配所有组件
+   */
+  components: string | RegExp | (string | RegExp)[] | '*'
+
+  /**
+   * 要注入的props
+   * key: prop名称
+   * value: prop值（字符串形式的表达式）
+   */
+  props: Record<string, string>
 }
 ```
 
 ## 注意事项
 
-1. 如果组件已经存在相同名称的prop，插件不会覆盖它
-2. prop值需要是有效的JSX表达式字符串：
-   - 字符串值需要用引号：`'"value"'`
-   - 数字值需要用花括号：`'{42}'`
-   - 布尔值需要用花括号：`'{true}'`
-3. 插件会保持源代码的格式和注释
+1. props值需要是字符串形式的表达式：
+   - 字符串值需要带引号：`"value"`
+   - 变量和表达式不需要带引号：`myVariable`、`1 + 2`
+
+2. 已存在的props不会被覆盖，插件会智能地只注入缺少的props。
+
+3. 确保source和components的匹配模式足够精确，避免误匹配。
 
 ## License
 
-MIT
+[MIT](./LICENSE) License © 2024
