@@ -1,19 +1,20 @@
 {
-  "name": "unplugin-starter",
+  "name": "unplugin-inject-props",
   "type": "module",
   "version": "0.1.0",
   "packageManager": "pnpm@10.3.0",
-  "description": "",
+  "description": "auto inject props to components for vite, webpack, rollup, esbuild, astro, nuxt",
   "license": "MIT",
-  "homepage": "https://github.com/antfu/unplugin-starter#readme",
+  "homepage": "https://zhangfisher.github.io/repos",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/antfu/unplugin-starter.git"
+    "url": "https://github.com/zhangfisher/unplugin-inject-props"
   },
   "bugs": {
-    "url": "https://github.com/antfu/unplugin-starter/issues"
+    "url": "https://github.com/zhangfisher/unplugin-inject-props/issues"
   },
   "keywords": [
+    "inject props",
     "unplugin",
     "vite",
     "webpack",
@@ -79,10 +80,7 @@
   ],
   "scripts": {
     "build": "tsup",
-    "dev": "tsup --watch src",
-    "lint": "eslint .",
-    "play": "npm -C playground run dev",
-    "prepublishOnly": "npm run build",
+    "dev": "tsup --watch src",  
     "release": "bumpp && pnpm publish",
     "start": "tsx src/index.ts",
     "test": "vitest run",
@@ -144,7 +142,7 @@
     "tsup": "^8.3.6",
     "tsx": "^4.19.2",
     "typescript": "^5.7.3",
-    "vite": "^6.1.0",
+    "vite": "^6.3.2",
     "vitest": "^3.0.5",
     "webpack": "^5.97.1"
   }

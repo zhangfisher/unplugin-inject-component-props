@@ -73,7 +73,7 @@ function isComponentMatched(componentName: string, pattern: string | RegExp): bo
 export const unpluginFactory: UnpluginFactory<Options> = options => {
   // 合并默认选项和用户选项
   const opts = Object.assign({
-    pattern: "**/*.{vue,jsx,tsx,.svelte,.mdx}",
+    pattern: "*.{vue,jsx,tsx,.svelte,.mdx}$",
     rules: []
   }, options) as Required<Options>
 
@@ -82,6 +82,7 @@ export const unpluginFactory: UnpluginFactory<Options> = options => {
 
   return {
     name: 'unplugin-inject-props',
+    enforce:'pre',
     transformInclude(id) {
       return hasRules && isFileMatched(id, opts.pattern)
     },
@@ -160,12 +161,12 @@ export const unpluginFactory: UnpluginFactory<Options> = options => {
 
       } catch (error) {
         // 记录错误但不中断构建过程
-        console.error(`[unplugin-inject-component-props] Error processing ${id}:`, error);
+        console.error(`[unplugin-inject-props] Error processing ${id}:`, error);
         return code
       }
     }
   }
 }
-export const unplugin = /* #__PURE__ */ createUnplugin(unpluginFactory)
+export const unplugin = createUnplugin(unpluginFactory)
 
 export default unplugin
