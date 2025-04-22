@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch src",
-    "release": "bun run build && bun run changeset version && bun publish",
+    "release": "bun run build && bun run changeset version && bun run changeset publish",
     "changeset": "changeset"
   },
   "keywords": [
