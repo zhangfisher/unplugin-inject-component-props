@@ -16,7 +16,8 @@
   "scripts": {
     "build": "tsdown",
     "dev": "tsdown --watch src",
-    "release": "bun publish"
+    "release": "bun run build && bun run changeset version && bun publish",
+    "changeset": "changeset"
   },
   "keywords": [
     "inject props",
@@ -116,6 +117,7 @@
     }
   },
   "dependencies": {
+    "@changesets/cli": "^2.29.2",
     "flex-tools": "^1.4.43",
     "magic-string": "^0.30.17",
     "minimatch": "^10.0.1",
