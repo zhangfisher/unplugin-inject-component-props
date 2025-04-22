@@ -1,6 +1,6 @@
-# unplugin-inject-component-props
+# unplugin-inject-props
 
-[![NPM version](https://img.shields.io/npm/v/unplugin-inject-component-props?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-inject-component-props)
+[![NPM version](https://img.shields.io/npm/v/unplugin-inject-props?color=a1b858&label=)](https://www.npmjs.com/package/unplugin-inject-props)
 
 自动为组件注入props的unplugin插件。
 
@@ -14,7 +14,9 @@
 ## 安装
 
 ```bash
-npm i unplugin-inject-component-props -D
+npm i -D unplugin-inject-props 
+yarn add -D unplugin-inject-props
+pnpm i -D unplugin-inject-props
 ```
 
 <details>
@@ -22,7 +24,7 @@ npm i unplugin-inject-component-props -D
 
 ```ts
 // vite.config.ts
-import InjectProps from 'unplugin-inject-component-props/vite'
+import InjectProps from 'unplugin-inject-props/vite'
 
 export default defineConfig({
   plugins: [
@@ -38,7 +40,7 @@ export default defineConfig({
 
 ```ts
 // rollup.config.js
-import InjectProps from 'unplugin-inject-component-props/rollup'
+import InjectProps from 'unplugin-inject-props/rollup'
 
 export default {
   plugins: [
@@ -57,7 +59,7 @@ export default {
 module.exports = {
   /* ... */
   plugins: [
-    require('unplugin-inject-component-props/webpack')({ /* options */ })
+    require('unplugin-inject-props/webpack')({ /* options */ })
   ]
 }
 ```
@@ -70,7 +72,7 @@ module.exports = {
 ```ts
 // esbuild.config.js
 import { build } from 'esbuild'
-import InjectProps from 'unplugin-inject-component-props/esbuild'
+import InjectProps from 'unplugin-inject-props/esbuild'
 
 build({
   plugins: [InjectProps({ /* options */ })],
@@ -84,8 +86,8 @@ build({
 ```ts
 InjectProps({
   // 匹配需要处理的文件
-  // 支持 glob 模式、正则表达式或它们的数组
-  pattern: '**/*.{vue,jsx,tsx}',
+  // 支持 glob 模式、正则表达式或它们的数组，使用minimatch
+  pattern: ['**/*.(vue|jsx|tsx)'],
 
   // 注入规则
   rules: [
@@ -121,7 +123,6 @@ InjectProps({
 ```tsx
 // 配置
 InjectProps({
-  pattern: '**/*.tsx',
   rules: [
     {
       source: '@/components',
@@ -154,7 +155,6 @@ function App() {
 ```tsx
 // 配置
 InjectProps({
-  pattern: '**/*.tsx',
   rules: [
     {
       source: '@/components',
@@ -196,7 +196,6 @@ function App() {
 ```tsx
 // 配置
 InjectProps({
-  pattern: '**/*.tsx',
   rules: [
     {
       source: '@/components',
@@ -231,10 +230,10 @@ function App() {
 ```ts
 interface Options {
   /**
-   * 匹配需要处理的文件
-   * @default '**/*.{vue,jsx,tsx,.svelte,.mdx}'
+   * 匹配需要处理的文件，使用minimatch，支持glob和正则表达式
+   * @default '\.(vue|jsx|tsx|svelte|mdx)'
    */
-  pattern?: string | RegExp | (string | RegExp)[]
+  pattern?: (string | RegExp)[]
 
   /**
    * 组件注入规则数组

@@ -5,19 +5,46 @@ import { minimatch } from 'minimatch'
 import MagicString from 'magic-string'
 
 /**
- * 检查文件是否匹配pattern
+ * 检查文件是否匹配pattern，支持排除模式（使用!前缀）
  */
-function isFileMatched(id: string, pattern?: string | RegExp | (string | RegExp)[]): boolean {
+function isFileMatched(id: string, pattern?: (string | RegExp)[]): boolean {
   if (!pattern) return true;
   const patterns = Array.isArray(pattern) ? pattern : [pattern];
-  return patterns.some(p => {
+  
+  // 分离包含和排除模式
+  const includePatterns: (string | RegExp)[] = [];
+  const excludePatterns: (string | RegExp)[] = [];
+  
+  patterns.forEach(p => {
+    if (typeof p === 'string' && p.startsWith('!')) {
+      excludePatterns.push(p.slice(1)); // 移除!前缀
+    } else {
+      includePatterns.push(p);
+    }
+  });
+
+  // 如果文件匹配任何排除模式，则返回false
+  if (excludePatterns.length > 0) {
+    const isExcluded = excludePatterns.some(p => {
+      if (typeof p === 'string') {
+        return minimatch(id, p);
+      }
+      return p.test(id);
+    });
+    if (isExcluded) return false;
+  }
+
+  // 如果没有包含模式，且文件不在排除列表中，则返回true
+  if (includePatterns.length === 0) return true;
+
+  // 检查文件是否匹配任何包含模式
+  return includePatterns.some(p => {
     if (typeof p === 'string') {
       return minimatch(id, p);
     }
     return p.test(id);
   });
 }
-
 
 /**
  * 匹配组件导入语句
@@ -69,22 +96,36 @@ function isComponentMatched(componentName: string, pattern: string | RegExp): bo
   return componentName === pattern;
 }
 
-
 export const unpluginFactory: UnpluginFactory<Options> = options => {
   // 合并默认选项和用户选项
   const opts = Object.assign({
-    pattern: "*.{vue,jsx,tsx,.svelte,.mdx}$",
-    rules: []
+    pattern: [
+      
+    ],
+    rules: [],
+    debug: false
   }, options) as Required<Options>
 
+  opts.pattern.push(...[
+        /\.(vue|jsx|tsx|svelte|mdx)$/,
+        "!**/node_modules/**",         // 默认排除 node_modules
+        "!**/dist/**",                 // 默认排除 dist
+        "!**/build/**",                // 默认排除 build
+        "!**/.git/**"                  // 默认排除 .git
+  ])
+
   // 检查是否有注入规则
-  const hasRules = opts.rules.length > 0;
+  const hasRules = opts.rules.length > 0; 
 
   return {
     name: 'unplugin-inject-props',
-    enforce:'pre',
+    enforce: 'pre',
     transformInclude(id) {
-      return hasRules && isFileMatched(id, opts.pattern)
+      const shouldInclude = hasRules && isFileMatched(id, opts.pattern);
+      if (opts.debug) {
+        console.log(`[unplugin-inject-props] File: ${id}, Include: ${shouldInclude}`);
+      }
+      return shouldInclude;
     },
     transform(code, id) {
       try {
@@ -104,19 +145,15 @@ export const unpluginFactory: UnpluginFactory<Options> = options => {
               continue;
             }
 
-            // 改进的组件标签匹配正则表达式
+            // 改进的组件标签匹配正则表达式，使用词边界确保完整匹配组件名
             const componentRegex = new RegExp(
-              `(<${componentName})(\\s*[^>]*?)?(\\s*/?\\s*>)`,
+              `(<${componentName}\\b)(\\s*[^>]*?)(\\s*/?\\s*>)`,
               'g'
             );
 
             let componentMatch;
             while ((componentMatch = componentRegex.exec(code)) !== null) {
-              const [fullMatch, tagStart, existingProps = '', tagEnd] = componentMatch;
-              const isSelfClosing = tagEnd.includes('/');
-
-              // 计算props插入位置：在现有props之后，结束标记之前
-              const insertPosition = componentMatch.index + tagStart.length + (existingProps ? existingProps.length : 0);
+              const [fullMatch, openTag, existingProps = '', closeTag] = componentMatch;
 
               // 构建要注入的props
               const propsToInject = Object.entries(rule.props)
@@ -144,9 +181,9 @@ export const unpluginFactory: UnpluginFactory<Options> = options => {
                 .join(' ');
 
               if (propsToInject) {
-                // 确保组件名和props之间有空格
-                const separator = existingProps.trim() ? ' ' : ' ';
-                s.appendLeft(insertPosition, `${separator}${propsToInject}`);
+                // 在结束标记之前插入props
+                const insertPosition = componentMatch.index + openTag.length;
+                s.appendRight(insertPosition, ` ${propsToInject}`);
                 hasChanges = true;
               }
             }
@@ -167,6 +204,7 @@ export const unpluginFactory: UnpluginFactory<Options> = options => {
     }
   }
 }
-export const unplugin = createUnplugin(unpluginFactory)
+
+export const unplugin = /* #__PURE__ */ createUnplugin(unpluginFactory)
 
 export default unplugin

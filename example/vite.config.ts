@@ -1,4 +1,4 @@
-import { defineConfig } from 'vite'
+import { defineConfig, PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import Inspect from 'vite-plugin-inspect'
 import InjectProps from "../src/vite" 
@@ -6,17 +6,20 @@ import InjectProps from "../src/vite"
 export default defineConfig({
   plugins: [
         InjectProps({
+            debug:true,
             rules: [
                 {
-                    source:"lucide-react",
+                    source: "lucide-react",
                     components: ["*"],
                     props: {
-                        "title": "Hello World"
+                        'color': '"red"',
+                        'strokeWidth':'{1}',
+                        'size': '{32}'
                     }
                 }
             ]
-        }),
-        react(),         
-        Inspect(),       
+        }) as PluginOption,
+        react() as PluginOption,         
+        Inspect() as PluginOption,       
     ],
 })

@@ -17,10 +17,11 @@ export interface Options {
    * - 正则表达式
    * - 字符串或正则表达式数组
    */
-   pattern?: string | RegExp | (string | RegExp)[];
+   pattern?: (string | RegExp)[];
    /**
     * 组件注入规则数组
     */
    rules: Rule[];
+   debug?:boolean
 }
  
