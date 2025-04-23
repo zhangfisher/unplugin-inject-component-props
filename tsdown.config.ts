@@ -9,4 +9,7 @@ export default <Options>{
   dts: true,
   cjsInterop: true,
   splitting: true,
+  outputOptions:{
+    exports:'named'
+  }
 }

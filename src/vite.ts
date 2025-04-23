@@ -1,4 +1,6 @@
 import { createVitePlugin } from 'unplugin'
 import { unpluginFactory } from '.'
 import { Options } from './types' 
-export default createVitePlugin<Options>(unpluginFactory) 
+export default createVitePlugin<Options>(unpluginFactory)  as (options?:Options)=>any
+
+ 

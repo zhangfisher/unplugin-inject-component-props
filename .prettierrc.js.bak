@@ -1,4 +1,4 @@
-module.exports = {
+export default {
   // 每行末尾不添加分号
   semi: true,
   // 字符串使用单引号

@@ -1,4 +1,4 @@
-import { defineConfig, PluginOption } from 'vite'
+import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 import Inspect from 'vite-plugin-inspect'
 import InjectProps from "../src/vite" 
@@ -18,8 +18,8 @@ export default defineConfig({
                     }
                 }
             ]
-        }) as PluginOption,
-        react() as PluginOption,         
-        Inspect() as PluginOption,       
+        }),
+        react(),         
+        Inspect()
     ],
 })
