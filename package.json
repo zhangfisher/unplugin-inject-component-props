@@ -1,7 +1,7 @@
 {
   "name": "unplugin-inject-props",
   "type": "module",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "packageManager": "pnpm@10.3.0",
   "description": "auto inject props to component for vite/webpack/rollup/esbuild/astro/nuxt",
   "license": "MIT",
